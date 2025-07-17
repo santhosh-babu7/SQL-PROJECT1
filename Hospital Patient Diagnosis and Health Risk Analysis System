@@ -1,0 +1,111 @@
+-- Hospital Patient Diagnosis and Health Risk Analysis System
+
+CREATE DATABASE IF NOT EXISTS hospital_analysis;
+USE hospital_analysis;
+
+-- Table: Patients
+CREATE TABLE patients (
+    patient_id INT PRIMARY KEY,
+    patient_name VARCHAR(100),
+    age INT,
+    gender ENUM('Male', 'Female'),
+    city VARCHAR(50)
+);
+
+-- Table: Diagnoses
+CREATE TABLE diagnoses (
+    diagnosis_id INT PRIMARY KEY AUTO_INCREMENT,
+    patient_id INT,
+    recorded_date DATE,
+    bp_systolic INT,
+    bp_diastolic INT,
+    sugar_level INT,
+    heart_rate INT,
+    FOREIGN KEY (patient_id) REFERENCES patients(patient_id)
+);
+
+-- Patients
+INSERT INTO patients VALUES
+(1, 'Aarav Singh', 45, 'Male', 'Delhi'),
+(2, 'Neha Reddy', 60, 'Female', 'Chennai'),
+(3, 'Rahul Kumar', 35, 'Male', 'Bangalore'),
+(4, 'Priya Mehta', 70, 'Female', 'Mumbai');
+
+-- Diagnoses
+INSERT INTO diagnoses (patient_id, recorded_date, bp_systolic, bp_diastolic, sugar_level, heart_rate) VALUES
+(1, '2025-07-01', 120, 80, 90, 75),
+(2, '2025-07-01', 160, 100, 200, 95),
+(3, '2025-07-01', 130, 85, 110, 85),
+(4, '2025-07-01', 145, 95, 180, 100);
+
+-- 1. Classify Blood Pressure Level
+-- Question 1: Classify Blood Pressure Level
+-- Classify each patient’s blood pressure as:
+-- 'Normal' → systolic < 120 AND diastolic < 80
+-- 'Elevated' → systolic BETWEEN 120–139 OR diastolic BETWEEN 80–89
+-- 'High BP' → systolic ≥ 140 OR diastolic ≥ 90
+-- Else 'Unknown'
+SELECT p.patient_name,d.bp_systolic,d.bp_diastolic,
+CASE 
+	WHEN d.bp_systolic<120 AND d.bp_diastolic<80 THEN 'Normal'
+    WHEN d.bp_systolic BETWEEN 120 AND 139 OR d.bp_diastolic BETWEEN 80 AND 89 THEN 'Elevated'
+	WHEN d.bp_systolic >= 140 OR d.bp_diastolic >= 90 THEN 'High BP'
+    ELSE 'Unknown'
+END bp_status
+FROM patients p
+JOIN diagnoses d ON p.patient_id=d.patient_id;
+
+
+-- 2: Sugar Level Risk Classification
+-- 'Young' → age < 40
+-- 'Middle-aged' → age BETWEEN 40–59
+-- 'Senior' → age ≥ 60
+SELECT 
+	CASE 
+		WHEN age<40 THEN 'Young'
+		WHEN age BETWEEN 40 AND 59 THEN 'Middle-aged'
+		ELSE 'Senior'
+	END age_group,
+	COUNT(patient_id)total_patients
+FROM patients
+GROUP BY age_group;
+
+-- Question 3: Sugar Level Risk Classification
+-- Classify patients’ sugar level as:
+-- 'Normal' → sugar level < 100
+-- 'Pre-Diabetes' → sugar level BETWEEN 100–125
+-- 'Diabetic' → sugar level ≥ 126
+-- Else 'Unknown'
+
+SELECT p.patient_id,d.sugar_level,
+CASE
+	WHEN d.sugar_level < 100 THEN 'Normal'
+	WHEN d.sugar_level BETWEEN 	100 AND 125 THEN 'Pre-Diabetes'
+    WHEN d.sugar_level >= 126 THEN  'Diabetic'
+    ELSE 'Unknown'
+END sugar_status
+FROM patients P
+JOIN diagnoses d ON p.patient_id=d.patient_id;
+    
+-- 4: Overall Health Risk Classification
+-- Assign each patient a health risk based on:
+-- 'High Risk' → systolic BP ≥ 140 OR sugar ≥ 180 OR heart rate > 100
+-- 'Medium Risk' → systolic BP BETWEEN 130–139 OR sugar BETWEEN 125–179
+-- Else 'Low Risk'
+
+SELECT p.patient_name,d.bp_systolic,d.sugar_level,d.heart_rate,
+ CASE
+	WHEN d.bp_systolic>=140 OR d.sugar_level>=180 OR d.heart_rate>100 THEN 'High Risk'
+    WHEN d.bp_systolic BETWEEN 130 AND 139 OR d.sugar_level BETWEEN 125 AND 179 THEN 'Medium Risk'
+    ELSE 'Low Risk' 
+END risk_status
+FROM patients p
+JOIN diagnoses d ON p.patient_id=d.patient_id;
+
+
+        
+        
+     
+    
+
+
